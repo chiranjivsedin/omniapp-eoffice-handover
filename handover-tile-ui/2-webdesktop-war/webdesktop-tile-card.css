@@ -1,0 +1,323 @@
+
+/* ===== LOCAL_DEV_TILE_CARD (webdesktop.war) ======================================
+   The INSIDE of the four landing count tiles - components/widget/widget.app, one
+   iframe per tile. The frame around it is styled from omniapp.war's stylesheet.css
+   (see _patch8/omniapp-tile-frame.css).
+
+   paintTile() in wdgeneral.js builds, inside div#tileContainerDiv:
+
+       table  (inline: padding 0 10px; width:100%; text-align:center)
+         tr   (inline: display:inline-block)
+           td              -> img.tileicon 35x35
+           td              -> table
+                                tr#filterRow_<n>
+                                  td.fieldlabel  alias
+                                  td.fieldlabel  " : "
+                                  td.fieldlabel  count
+
+   WHAT CSS CANNOT DO HERE - and why this file looks the way it does.
+   The alias and the count both carry font-size and colour as INLINE styles with
+   !important (filterFontSize / filterCountFontSize, both 15px; filterFontColor and
+   filterCountFontColor, both #FFFFFF). Inline !important beats an author
+   stylesheet's !important, so their size and colour are immovable from CSS. That
+   means:
+     - the label and count sizes are therefore NOT set here at all: they come from
+       config (filterFontSize / filterCountFontSize in Criteria Visualisation), which
+       is where they should be changed. `zoom` can beat an inline !important and was
+       used for a while, but forcing sizes in CSS would fight config rather than
+       respect it;
+     - the text is white on every tile, so the configured background must stay
+       saturated. Lightening it to a pale tint would leave white text on near-white.
+   Enlarging the count or tinting the card needs JS (tried in _patch7, reverted: it
+   assumed a tile height and clipped in a real browser).
+
+   The colours, icon and font sizes stay configurable per tile in Criteria
+   Visualisation; nothing here overrides them.
+
+   SCOPING - why every rule below is guarded.
+   This stylesheet is loaded by EVERY webdesktop page, and the worklist
+   (components/workitem/workitemlist.xhtml) uses the same `body.bodywhite` and the
+   same `.panelstyle-ext` header class. Unguarded, the header rules gave the
+   worklist's "My Queue" toolbar `position: absolute` and white-on-white text, so it
+   went invisible and overlapped the column headers; `display: flex` on body would
+   have disturbed its layout too. Everything that is not already addressed by the
+   #tileContainerDiv id is therefore guarded with
+   `:has(#tileContainerDiv:not([style*="display: none"]))`, which matches only a
+   widget page that is actually showing a TILE - not the worklist, and not a
+   CHART-type widget (whose header must stay in flow above the chart).
+
+   ================================================================================= */
+
+/* The criteria name, lifted ONTO the coloured block.
+   It used to sit in a white strip above the block, which read as dead space and made
+   each tile look like two unfinished halves. Taking the header out of flow lets the
+   coloured block own the full card, with the title over it.
+
+   This works because the header's colour is the one piece of text here that is NOT
+   locked: `.panelstyle-ext` in statictheme.css sets `color:#00599a` with no
+   !important, so it can be recoloured to white - unlike the label and count, which
+   paintTile writes inline with !important. The refresh and popout controls are icon
+   fonts (`:before{content:"\e913"}`), so they take `color` too and turn white with
+   the title; they are kept rather than hidden because hiding the header would remove
+   the only refresh and popout affordance.
+
+   The header carries its own dark scrim rather than relying on the block's gradient:
+   white on the lighter palette entries (#00CCCC especially) needs the help.
+   Config sets headFontSize per tile (10-18px here) but paintTile never applies it,
+   so one size is safe.
+   Note: the My Inbox tile has an empty criteriaName in config, so its title is blank
+   - that is a data gap, not a styling one. */
+body:has(#tileContainerDiv:not([style*="display: none"])) table.panelstyle-ext {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 2 !important;
+    /* 100%, not auto: an absolutely positioned TABLE shrink-to-fits instead of
+       stretching to left:0/right:0, which left the scrim ending mid-tile with a
+       visible hard edge. */
+    width: 100% !important;
+    box-sizing: border-box !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    background: linear-gradient(180deg,
+                  rgba(0, 0, 0, 0.20) 0%,
+                  rgba(0, 0, 0, 0.06) 70%,
+                  rgba(0, 0, 0, 0) 100%) !important;
+}
+
+/* Recolour the title and both icon-font controls. The cells carry the colour, so it
+   has to be set on the descendants, not just the table. */
+/* Size AND colour have to be set on the inner elements, not just on the table.
+   `.panelstyle-ext { font-size: 13px !important }` in statictheme.css applies to the
+   table; setting 9.5px there left the text visually unchanged because what actually
+   renders it is the label inside #ellipsisDiv. Measuring the table's font-size
+   "confirmed" a change that was not on screen - measure the element that holds the
+   text. Stock is 13px; 11px reads as a caption without shrinking away (8.5px was
+   too small). This is the ONLY font size set in this file - the label and count come
+   from config. */
+body:has(#tileContainerDiv:not([style*="display: none"])) table.panelstyle-ext,
+body:has(#tileContainerDiv:not([style*="display: none"])) table.panelstyle-ext td,
+body:has(#tileContainerDiv:not([style*="display: none"])) table.panelstyle-ext label,
+body:has(#tileContainerDiv:not([style*="display: none"])) table.panelstyle-ext .ellipsis,
+body:has(#tileContainerDiv:not([style*="display: none"])) table.panelstyle-ext #ellipsisDiv {
+    color: #ffffff !important;
+    font-size: 11px !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28) !important;
+}
+
+/* Make the coloured block fill the tile down to its bottom edge.
+   paintTileView assigns an explicit inline height:
+       hidHeight - 2*tileBorderSize - 25
+   which is derived from config, not from the space actually available, so the block
+   stops short and leaves a white gap under it. Rather than guess a better number,
+   the chain from html down to the block is made a flex column and the block takes
+   the remaining space - correct at any tile height. The inline height is
+   non-important, so `height: auto !important` overrides it.
+   min-height:0 is needed on the flex parents or a flex item refuses to shrink below
+   its content and the gap comes back. */
+html:has(#tileContainerDiv:not([style*="display: none"])) {
+    height: 100% !important;
+}
+
+body.bodywhite:has(#tileContainerDiv:not([style*="display: none"])) {
+    margin: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    position: relative !important;   /* positioning context for the header above */
+    background: transparent !important;
+}
+
+/* The JSF form wrapping the header and the block. */
+#widgetView:has(#tileContainerDiv:not([style*="display: none"])) {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+}
+
+/* The coloured block. Centres its content both ways, and drops the 3px border
+   paintTile draws in the tile's own background colour (invisible, and it ate 6px of
+   the height). The gradient is a light sheen over a dark foot: it adds depth without
+   needing to know the colour underneath, and the slight darkening helps white text
+   on the lighter palette entries (#00CCCC especially).
+   No border-radius here - the frame in omniapp.war clips these corners.
+
+   The :not() guard is essential. This div is display:none in the markup and only a
+   TILE-type widget sets it to block; a CHART-type widget leaves it hidden and paints
+   #chartContainerDiv instead. An unguarded `display: flex !important` would override
+   that inline `display: none` and put an empty coloured block on every chart widget. */
+#tileContainerDiv.tileContainerDiv:not([style*="display: none"]) {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 1 1 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border: 0 !important;
+    /* Left-aligned like the mockup, with room reserved on the right for the arrow
+       and on top for the overlaid title. */
+    justify-content: flex-start !important;
+    position: relative !important;
+    padding: 24px 52px 6px 14px !important;
+    overflow: hidden !important;
+    background-image: linear-gradient(135deg,
+                        rgba(255, 255, 255, 0.20) 0%,
+                        rgba(255, 255, 255, 0.04) 48%,
+                        rgba(0, 0, 0, 0.14) 100%) !important;
+    cursor: pointer !important;
+    transition: filter 0.15s ease !important;
+}
+
+/* The stock hover only recoloured a border that cannot be seen. */
+#tileContainerDiv.tileContainerDiv:hover {
+    filter: brightness(1.06) !important;
+}
+
+/* Let the content size to itself so the flex centring above has something to act
+   on; the stock table is width:100% with its own padding. */
+#tileContainerDiv.tileContainerDiv > table {
+    width: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+#tileContainerDiv.tileContainerDiv td {
+    vertical-align: middle !important;
+    line-height: 1.35 !important;
+}
+
+/* Icon into a translucent circular chip. Sized in the markup as 35x35 with an
+   inline margin, so both are overridden; border-box keeps the padding inside the
+   circle instead of growing it. */
+#tileContainerDiv.tileContainerDiv img {
+    width: 40px !important;
+    height: 40px !important;
+    padding: 10px !important;
+    box-sizing: border-box !important;
+    border-radius: 50% !important;
+    background: rgba(255, 255, 255, 0.20) !important;
+    margin: 0 12px 0 0 !important;
+}
+
+/* The label. Text is white 15px by config and cannot change; a slight shadow keeps
+   it legible over the lighter palette colours. */
+#tileContainerDiv.tileContainerDiv td.fieldlabel {
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18) !important;
+    white-space: nowrap !important;
+}
+
+/* Cell 2 is the literal " : " separator. Redundant once the count sits in a pill,
+   and it reads as clutter on a card. */
+#tileContainerDiv.tileContainerDiv tr[id^="filterRow_"] > td.fieldlabel:nth-child(2) {
+    display: none !important;
+}
+
+/* Stack the label over the count, as in the mockup. The markup puts them in one
+   table row, so the row and its cells are switched to block. */
+#tileContainerDiv.tileContainerDiv tr[id^="filterRow_"] {
+    display: block !important;
+}
+
+/* Make the WHOLE card clickable, not just the label and count.
+   widget.xhtml attaches onclick to this row, and the row only covers the icon and
+   text - so the rest of the card, including the arrow in the bottom-right corner,
+   did nothing when clicked. The arrow looked like a button and was not one.
+
+   This stretches an empty pseudo-element over the card instead of stretching the row
+   itself: the row is a <tr> inside a nested table, so making that chain fill the
+   block would mean resizing the outer table, its row, its cell and the inner table
+   too. A click on a pseudo-element counts as a click on the element that owns it, so
+   the vendor's own onclick fires - no JS, and nothing to re-attach on re-render.
+
+   z-index 1 is deliberate: the header sits at z-index 2, so the refresh and
+   popout controls stay above this overlay and keep working. */
+#tileContainerDiv.tileContainerDiv tr[id^="filterRow_"]::after {
+    content: "" !important;
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    z-index: 1 !important;
+    cursor: pointer !important;
+}
+
+#tileContainerDiv.tileContainerDiv tr[id^="filterRow_"] > td.fieldlabel {
+    display: block !important;
+    text-align: left !important;
+    padding: 0 !important;
+}
+
+/* Cell 3 is the count.
+   Its size is NOT set here on purpose. paintTile writes font-size inline from
+   config (`filterCountFontSize`), and that is where it should be changed - in
+   Criteria Visualisation, per tile. An earlier version forced it larger with `zoom`
+   (the one way to beat an inline !important, since it is not itself an inline
+   property); that has been removed so config stays in control. Only the layout and
+   the drop shadow are set here. */
+#tileContainerDiv.tileContainerDiv tr[id^="filterRow_"] > td.fieldlabel:nth-child(3) {
+    line-height: 1.05 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.22) !important;
+}
+
+/* The label. Size likewise left to config (`filterFontSize`). */
+#tileContainerDiv.tileContainerDiv tr[id^="filterRow_"] > td.fieldlabel:nth-child(1) {
+    line-height: 1.25 !important;
+    opacity: 0.95 !important;
+}
+
+/* The arrow affordance from the mockup. It does not exist in the markup at all, so
+   it is drawn with the block's two pseudo-elements: ::before is the circle, ::after
+   is the chevron.
+
+   The chevron is two borders on a rotated square rather than a glyph like U+203A.
+   That is deliberate: a character here depends on the escape surviving this file's
+   encoding and on the font actually having the glyph, and the first attempt shipped
+   U+0083 followed by a literal "A" because the escape was mangled. Borders render
+   identically everywhere and cannot be mis-encoded.
+
+   Positioned bottom-right to match the mockup. The block reserves 52px of right
+   padding, so the arrow never collides with the label or the count.
+
+   If the circle's size or offsets change, update the chevron's right/bottom to the
+   circle's new centre - the translate(50%, 50%) then keeps it centred by itself.
+
+   Both get pointer-events:none so they can never intercept the tile's click, which
+   widget.xhtml wires onto the filterRow element. */
+body:has(#tileContainerDiv:not([style*="display: none"])) #tileContainerDiv.tileContainerDiv::before {
+    content: "" !important;
+    position: absolute !important;
+    right: 13px !important;
+    bottom: 10px !important;
+    width: 22px !important;
+    height: 22px !important;
+    border-radius: 50% !important;
+    background: rgba(255, 255, 255, 0.26) !important;
+    pointer-events: none !important;
+}
+
+body:has(#tileContainerDiv:not([style*="display: none"])) #tileContainerDiv.tileContainerDiv::after {
+    content: "" !important;
+    position: absolute !important;
+    /* Anchored to the circle's exact centre (right 13 + half of 22 = 24; bottom 10
+       + 11 = 21), then translate(50%, 50%) shifts it by half its OWN size so its
+       centre lands there. That removes the hand-computed offsets the previous
+       version used, which were half a pixel out and, worse, depended on whether
+       box-sizing: border-box applied to the borders. */
+    right: 24px !important;
+    bottom: 21px !important;
+    width: 5px !important;
+    height: 5px !important;
+    box-sizing: content-box !important;
+    border-right: 2px solid #ffffff !important;
+    border-top: 2px solid #ffffff !important;
+    transform: translate(50%, 50%) rotate(45deg) !important;
+    /* A border corner rotated 45 degrees has its ink toward the point, not the box
+       centre, so nudge it back a pixel to look centred rather than measure centred. */
+    margin-right: 1px !important;
+    pointer-events: none !important;
+}
+
+/* ===== end LOCAL_DEV_TILE_CARD (webdesktop.war) ================================== */

@@ -1,0 +1,373 @@
+<title>eOffice Fix Plan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #f6f7f9;
+    --surface: #ffffff;
+    --ink: #171b21;
+    --ink-2: #4a5563;
+    --ink-3: #6b7683;
+    --line: #dde2e9;
+    --accent: #0b5fa5;
+    --good: #1e7a3c;
+    --warn: #a4650a;
+    --stop: #a8241c;
+    --serif: "IBM Plex Serif", Georgia, serif;
+    --sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #12151a;
+      --surface: #191d24;
+      --ink: #e6e9ee;
+      --ink-2: #a7b2c0;
+      --ink-3: #8b96a4;
+      --line: #2a303a;
+      --accent: #6aa9e0;
+      --good: #63b97c;
+      --warn: #d9a341;
+      --stop: #e0796f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #12151a;
+    --surface: #191d24;
+    --ink: #e6e9ee;
+    --ink-2: #a7b2c0;
+    --ink-3: #8b96a4;
+    --line: #2a303a;
+    --accent: #6aa9e0;
+    --good: #63b97c;
+    --warn: #d9a341;
+    --stop: #e0796f;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 47rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.25rem;
+  }
+
+  /* ---- header ---- */
+  header { display: flex; flex-direction: column; gap: .5rem; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 2rem;
+    line-height: 1.15;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .standfirst { color: var(--ink-2); margin: 0; max-width: 36rem; }
+
+  /* ---- summary table ---- */
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .875rem; }
+  caption {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding-bottom: .6rem;
+  }
+  th, td {
+    text-align: left;
+    padding: .55rem .75rem .55rem 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    font-weight: 600;
+    font-size: .72rem;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    border-bottom-color: var(--ink-3);
+  }
+  td:last-child, th:last-child { padding-right: 0; font-variant-numeric: tabular-nums; }
+
+  .chip {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: .1rem .4rem;
+    border: 1px solid currentColor;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .is-done { color: var(--good); }
+  .is-part { color: var(--warn); }
+  .is-stop { color: var(--stop); }
+
+  /* ---- point sections ---- */
+  section.point {
+    border-left: 3px solid var(--edge, var(--accent));
+    padding-left: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .8rem;
+  }
+  section.point.done { --edge: var(--good); }
+  section.point.part { --edge: var(--warn); }
+  h2 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    gap: .6rem;
+    flex-wrap: wrap;
+  }
+  h2 .num {
+    font-family: var(--mono);
+    font-size: .8rem;
+    color: var(--ink-3);
+    font-weight: 400;
+  }
+  section.point > p { margin: 0; color: var(--ink-2); }
+
+  dl {
+    margin: 0;
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    gap: .4rem 1rem;
+    font-size: .875rem;
+  }
+  dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding-top: .18rem;
+  }
+  dd { margin: 0; }
+  @media (max-width: 34rem) {
+    dl { grid-template-columns: 1fr; gap: .1rem; }
+    dd { padding-bottom: .45rem; }
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: .84em;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: .05em .3em;
+  }
+
+  .swatches { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
+  .sw {
+    width: .85rem; height: .85rem; border-radius: 50%;
+    border: 1px solid rgba(0,0,0,.2);
+  }
+
+  /* ---- plain blocks ---- */
+  h3 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin: 0 0 .5rem;
+  }
+  .note {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1rem 1.1rem;
+  }
+  ul, ol { margin: 0; padding-left: 1.2rem; color: var(--ink-2); }
+  li { margin-bottom: .35rem; }
+  li strong { color: var(--ink); font-weight: 600; }
+  ol.decisions { counter-reset: none; }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding-top: 1rem;
+    font-size: .8rem;
+    color: var(--ink-3);
+  }
+  a { color: var(--accent); }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">BL01 &middot; Newgen iBPS OmniApp 6.0 SP0</div>
+    <h1>eOffice fix plan</h1>
+    <p class="standfirst">Three items the client raised, what each one turned out to be, and what is
+      done. Two are finished; one waits on a decision from us.</p>
+  </header>
+
+  <div class="scroll">
+    <table>
+      <caption>Status at a glance</caption>
+      <thead>
+        <tr>
+          <th scope="col">Item</th>
+          <th scope="col">Status</th>
+          <th scope="col">Route</th>
+          <th scope="col">Handover</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1 &nbsp;File number cut short, no column resize</td>
+          <td><span class="chip is-done">Done</span></td>
+          <td>Config + CSS + script</td>
+          <td>80 KB</td>
+        </tr>
+        <tr>
+          <td>2 &nbsp;Colour work items by state</td>
+          <td><span class="chip is-part">Needs a decision</span></td>
+          <td>Script</td>
+          <td>12 KB</td>
+        </tr>
+        <tr>
+          <td>3 &nbsp;Tiles look dated</td>
+          <td><span class="chip is-done">Done</span></td>
+          <td>CSS + config</td>
+          <td>32 KB</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section class="point done">
+    <h2><span class="num">01</span> File number and column widths</h2>
+    <p>The file number showed as <code>BL/ENOTES/GL/PAT/AN/LAPTOP&hellip;</code> &mdash; cut at 30
+      characters. It was never a column-width problem, which is why widening the column had no
+      effect.</p>
+    <dl>
+      <dt>Cause</dt>
+      <dd>A 30-character limit compiled into the product's own Java, applied before the page is
+        drawn. No stylesheet or column setting can reach it.</dd>
+      <dt>Fix</dt>
+      <dd>One setting in <code>webdesktop.ini</code> (<code>EnableWordWrapForQVar</code>) lifts the
+        limit; a small stylesheet addition keeps the full value on one line, capped at 320px so a
+        single long entry cannot stretch the grid.</dd>
+      <dt>Also done</dt>
+      <dd>Columns can now be dragged to resize, with double-click to fit the content. Widths last
+        for the session &mdash; the product has nowhere to store them per user.</dd>
+    </dl>
+  </section>
+
+  <section class="point part">
+    <h2><span class="num">02</span> Colour by work-item state</h2>
+    <p>Rows are now tinted by state: amber for not started, blue for running, green for completed,
+      with a coloured bar down the left edge.</p>
+    <dl>
+      <dt>Cause</dt>
+      <dd>Not a defect &mdash; the feature does not exist. The product colours rows from a
+        <em>queue variable</em>, and work-item state is not one, so no configuration can express
+        it. Colouring by <em>stage</em> was tried and abandoned: a stage says where an item sits in
+        the process, not whether it has started, so every row came out the same colour.</dd>
+      <dt>Fix</dt>
+      <dd>A short script reads the state already shown in the grid and tints the row. It queries
+        nothing and adds nothing to the page.</dd>
+      <dt>Limits</dt>
+      <dd>A view that does not display the <em>Workitem State</em> column stays uncoloured &mdash;
+        Sent Items shows <em>Stage</em> instead. Completed items rarely appear at all, because
+        finished work leaves the queue.</dd>
+      <dt>Decision</dt>
+      <dd>Confirm which column and values should drive the colours. Retargeting it is a two-line
+        edit, so this is a question for the client, not more development.</dd>
+    </dl>
+  </section>
+
+  <section class="point done">
+    <h2><span class="num">03</span> Tile appearance</h2>
+    <p>The four count tiles were flat colour blocks with a dead white strip above each. They now
+      read as cards: the colour fills the tile, the title sits on it, the icon is in a round chip,
+      the count sits under its label, with a rounded edge and a hover lift.</p>
+    <dl>
+      <dt>Route</dt>
+      <dd>Stylesheet only &mdash; no scripts, nothing replaced. Two applications are involved
+        because one tile is a panel from one drawn inside a frame from the other.</dd>
+      <dt>Config</dt>
+      <dd>Colours, icons and the heading are set per tile in
+        <strong>Business Admin &rarr; Criteria Management &rarr; Criteria Visualization</strong>.
+        The missing heading on <em>My Inbox</em> was one checkbox there, now enabled.
+        <span class="swatches" aria-label="current tile colours">
+          <span class="sw" style="background:#FF9900"></span>
+          <span class="sw" style="background:#00CCCC"></span>
+          <span class="sw" style="background:#3366FF"></span>
+          <span class="sw" style="background:#663333"></span>
+        </span>
+      </dd>
+      <dt>Ceiling</dt>
+      <dd>Font sizes are configurable, but only as Small, Medium or Large &mdash; 10, 12 and 15px.
+        The count already sits at the 15px maximum, so configuration can only shrink the label, and
+        both smaller sizes tested worse. A prominent headline number needs one line of stylesheet,
+        which scales whatever size is configured rather than replacing it.</dd>
+      <dt>Not possible</dt>
+      <dd>Equal tile widths. The dashboard places every panel itself, at fixed positions on a
+        12-column grid; changing a width in the stylesheet resizes one tile without moving the
+        next, so they overlap. The row is full &mdash; the navigation bar takes 2 columns and the
+        four tiles take the remaining 10, which does not divide into four. Equal tiles need either
+        a fifth panel in the row or a wider navigation bar, both layout configuration.</dd>
+      <dt>Why not code it</dt>
+      <dd>It is technically possible but not safe or maintainable: it would mean overriding the
+        dashboard's layout engine on every render &mdash; on load, on resize, on refresh, on any
+        rearrangement &mdash; with overlapping tiles as the failure mode rather than an untidy one.
+        Equal widths belong in the layout configuration.</dd>
+    </dl>
+  </section>
+
+  <div class="note">
+    <h3>Two rules that govern all of this</h3>
+    <ul>
+      <li><strong>Configuration is shared and immediate.</strong> Colours, fonts, icons and headings
+        live in the central database, so a change is live for every user at once. There is no
+        separate test copy &mdash; our machine reads the same database.</li>
+      <li><strong>Stylesheet and script changes sit inside the product's own files.</strong> Each is
+        appended, marked with a comment, and removed by deleting that block. They must be re-applied
+        after any upgrade or redeployment of the product.</li>
+    </ul>
+  </div>
+
+  <section>
+    <h3>Open decisions</h3>
+    <ol class="decisions">
+      <li><strong>Which field drives the row colours</strong> &mdash; client to confirm; two-line
+        change once known.</li>
+      <li><strong>Equal tile widths</strong> &mdash; needs a layout change: add a fifth panel, or
+        widen the navigation bar. Neither is safe to do from code.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h3>Handing it over</h3>
+    <p style="margin:0;color:var(--ink-2)">Each item has its own folder with the files and a short
+      set of steps &mdash; append the given block, redeploy, restart. Every change is
+      append-only and reversible, and nothing in the product's own code is edited in place.</p>
+  </section>
+
+  <footer>
+    BL01 eOffice &middot; iBPS OmniApp 6.0 SP0 (Hotfix 001) &middot; plan as at 10 September 2026
+  </footer>
+
+</div>

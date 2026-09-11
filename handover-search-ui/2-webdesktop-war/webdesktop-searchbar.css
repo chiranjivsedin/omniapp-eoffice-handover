@@ -1,0 +1,153 @@
+
+/* ===== LOCAL_DEV_SEARCHBAR ========================================================
+   Spacing for the worklist search bar - components/workitem/searchbar.xhtml, its own
+   iframe: two dropdowns, the "Search Workitem" box, a recent-search icon and the
+   Advanced Search button.
+
+   WHAT THIS DOES, AND WHAT IT LEAVES ALONE
+   Spacing between the controls, plus their surface: radius, border, hover, focus and
+   inner padding.
+
+   It does NOT touch height or font size. All three controls are 22px with 11px text,
+   and the Advanced Search button's height is `!important` INLINE, so a stylesheet
+   cannot change it. Making the dropdowns and the search box taller would therefore
+   leave the button short and the row misaligned - that is a separate change, and it
+   needs the button scaled to match.
+
+   An earlier version restyled the surface on its own and was reverted as not worth
+   it. The difference now is that the panels around the strip are rounded
+   (LOCAL_DEV_PANEL_CARD), so matching corners on the controls read as deliberate
+   rather than as an isolated tweak.
+
+   SCOPING
+   `body:has(.advs)`. `.advs` is on the Advanced Search button, is present in the
+   rendered DOM, and appears in exactly one page in the WAR - so these rules cannot
+   reach the worklist, the widgets or the advanced-search dialog, which reuse
+   `.oa-cmenu` and share `body.bodywhite`.
+
+   A previous version scoped on `.qsc`, which exists in searchbar.xhtml's SOURCE but
+   never renders: the rules loaded and silently matched nothing. Confirm a scoping
+   hook is in the DOM, not just in the markup.
+   ================================================================================= */
+
+/* Breathing room between the controls. The strip is crowded: the dropdowns sit flush
+   against each other and the recent-search icon reads as orphaned between the search
+   box and the button.
+   margin-right only - a left margin on the first control would shift the whole strip
+   and the dropdowns are absolutely positioned against their own wrappers. */
+body:has(.advs) select.oa-cmenu {
+    margin-right: 8px !important;
+}
+
+/* The search box's wrapper, so the gap sits outside the input's border. */
+body:has(.advs) .oa-search {
+    margin-right: 8px !important;
+}
+
+/* A small inset at the strip's left edge so the first dropdown is not flush against
+   the panel, now that the panel has rounded corners (LOCAL_DEV_PANEL_CARD). */
+body:has(.advs) .qsc,
+body:has(.advs) form#wlf > table {
+    padding-left: 4px !important;
+}
+
+/* ---- the controls' surface -------------------------------------------------------
+   One radius and one border colour on the dropdowns and the search box, matching the
+   8px panels around them (5px reads right on a 22px control; 8px looks bloated).
+
+   The doubled [id] on the input is deliberate, not a typo. Its radius is pinned by
+   `.oa-cmenu-w > .oa-group > *:first-child { border-radius: 0 2px 2px 0 !important }`
+   in statictheme.css at specificity (0,3,0), which beats this rule's (0,2,2) - so on
+   the first attempt the border colour applied and the radius silently did not.
+   Repeating [id] lifts it to (0,3,2) without relying on the wrapper structure. */
+body:has(.advs) select.oa-cmenu,
+body:has(.advs) input[id$="Prefix"][id] {
+    border-radius: 5px !important;
+    border: 1px solid #c4ccd6 !important;
+    background-color: #ffffff !important;
+}
+
+/* Hover - the stock flat grey gives no sign these are interactive. */
+body:has(.advs) select.oa-cmenu:hover,
+body:has(.advs) input[id$="Prefix"][id]:hover {
+    border-color: #9fb0c2 !important;
+}
+
+/* Focus: border only, no halo. A 2px ring around a 22px control is heavier than the
+   control itself and read as clumsy; the border going to the app's blue is enough to
+   show which field has the caret. The stock 5px outer glow is suppressed for the same
+   reason. */
+body:has(.advs) select.oa-cmenu:focus,
+body:has(.advs) input[id$="Prefix"][id]:focus {
+    border-color: #00599a !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Inner padding: left only.
+   A native select already reserves room for the arrow it draws itself, so adding
+   padding-right on top of that does not push the arrow - it shrinks the text area,
+   and both dropdown labels were clipped ("Registration No" -> "Registration N").
+   Left padding is safe: 10px sits better against the rounded corner than the 8px
+   `.oa-cmenu` gives.
+   The search box is deliberately untouched: `.oa-search input` sets
+   `padding: 0 10px 0 27px`, and that 27px is what clears the magnifier icon -
+   overriding it would put the caret under the icon. */
+body:has(.advs) select.oa-cmenu {
+    padding-left: 10px !important;
+}
+
+/* ---- the recent-search icon -----------------------------------------------------
+   An <img class="rs mcc"> (resources/images/recent-s.png), 22x22 with 3px padding and
+   a 1px #d7d7d7 box, all set INLINE - but without !important, so these override it.
+   It currently reads as a bare boxed image wedged against the search field. Matching
+   the controls' radius and border, and giving it a hover, makes it a button. */
+body:has(.advs) img.rs {
+    border-radius: 5px !important;
+    border: 1px solid #c4ccd6 !important;
+    background-color: #ffffff !important;
+    margin-left: 6px !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease !important;
+}
+
+body:has(.advs) img.rs:hover {
+    border-color: #9fb0c2 !important;
+    background-color: #f2f6fa !important;
+}
+
+/* ---- the Advanced Search button -------------------------------------------------
+   Height AND width are pinned inline with !important (22px / 125px), so this is
+   colour, border, radius and states only - no sizing. Font size is a stylesheet rule
+   rather than inline, so it can be lifted a little; 12px still clears the 22px box.
+
+   The button already renders blue from omniapp's themes.css. What it lacks is a
+   radius matching everything else and any feedback on hover or press. */
+body:has(.advs) input.buttonstyle.advs {
+    border-radius: 5px !important;
+    background-color: #0b5fa5 !important;
+    border: 1px solid #0b5fa5 !important;
+    color: #ffffff !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em !important;
+    cursor: pointer !important;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+body:has(.advs) input.buttonstyle.advs:hover {
+    background-color: #094c85 !important;
+    border-color: #094c85 !important;
+    box-shadow: 0 1px 3px rgba(11, 95, 165, 0.35) !important;
+}
+
+body:has(.advs) input.buttonstyle.advs:active {
+    background-color: #083f6f !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.22) !important;
+}
+
+body:has(.advs) input.buttonstyle.advs:focus-visible {
+    outline: 2px solid rgba(0, 89, 154, 0.45) !important;
+    outline-offset: 1px !important;
+}
+
+/* ===== end LOCAL_DEV_SEARCHBAR ==================================================== */

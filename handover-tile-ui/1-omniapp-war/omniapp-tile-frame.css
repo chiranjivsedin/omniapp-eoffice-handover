@@ -1,0 +1,68 @@
+
+/* ===== LOCAL_DEV_TILE_CARD (omniapp.war) =========================================
+   The OUTER frame of the four landing count tiles, in pages/main/main.app.
+
+   Each tile is three nested elements in this document:
+       div.col-select.col-xl-3|col-xl-2.resp-comp-wrapper   <- Bootstrap width + gap
+         div#div_Int<n>.containerShadow.containerRadius     <- the visible tile box
+           div.embed-responsive > iframe#iframe_Int<n>      <- widget.app (webdesktop.war)
+
+   The coloured block and the header live INSIDE that iframe and are styled from
+   webdesktop.war's stylesheet.css (see _patch8/webdesktop-tile-card.css). This file
+   can only reach the frame around it - hence two files for one visual change.
+
+   What this fixes: the box calls itself `containerRadius` but computes to
+   `border-radius: 0` with a flat 1px grey border, which reads as a slab rather than
+   a card. Rounding, shadow and a hover lift make it a card.
+
+   What it deliberately does NOT fix: the unequal tile widths - see the note below,
+   which explains why a stylesheet cannot do it.
+
+   Rules are scoped to col-xl-2/col-xl-3 on purpose. `.col-select` alone would also
+   catch the search bar and the worklist, which are col-xl-10.
+   ================================================================================= */
+
+/* WIDTHS ARE DELIBERATELY NOT TOUCHED HERE - it cannot work from CSS.
+   Created By and Sent Items are col-xl-3, My Inbox and Draft col-xl-2 (371px vs
+   247px), so the four tiles look mismatched. That is not fixable in a stylesheet,
+   and the reason is worth recording so nobody retries it:
+
+   every one of these wrappers is `position: absolute`. This dashboard is a
+   drag-and-drop layout whose components are positioned and sized from JS/config,
+   not by the Bootstrap flow - the `left` values come out as 255, 378, 502, 626,
+   i.e. one ~124px grid column apart. Overriding the CSS width therefore resizes a
+   tile without moving the next one, so the tiles simply overlap; forcing 25% each
+   made them 371px in 124px slots and pushed Draft onto a second row. Overriding
+   `flex` does nothing at all, since absolute positioning takes the elements out of
+   flex layout entirely.
+
+   Equalising them means changing the component width in the layout config (the
+   col-xl-N each tile is given) so that JS lays them out on the new geometry - the
+   same config route that silently added an empty fifth box when it was tried
+   before. It is a config change, not a code change. */
+
+/* Round and lift the tile box. overflow:hidden is what clips the iframe inside to
+   the rounded corners - without it the coloured block keeps square corners.
+   8px rather than something softer: the search bar and the worklist grid below these
+   tiles have square corners, and a heavier radius made the tiles look unrelated to
+   them. */
+.col-select.col-xl-2 > div[id^="div_Int"].containerShadow,
+.col-select.col-xl-3 > div[id^="div_Int"].containerShadow {
+    border: 0 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.10),
+                0 6px 16px rgba(16, 24, 40, 0.08) !important;
+    transition: box-shadow 0.18s ease, transform 0.18s ease !important;
+}
+
+/* The tiles are clickable, so give the whole card a hover state, not just the
+   coloured area inside it. */
+.col-select.col-xl-2 > div[id^="div_Int"].containerShadow:hover,
+.col-select.col-xl-3 > div[id^="div_Int"].containerShadow:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(16, 24, 40, 0.12),
+                0 12px 28px rgba(16, 24, 40, 0.14) !important;
+}
+
+/* ===== end LOCAL_DEV_TILE_CARD (omniapp.war) ===================================== */

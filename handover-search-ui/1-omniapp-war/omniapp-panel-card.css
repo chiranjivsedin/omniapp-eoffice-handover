@@ -1,0 +1,39 @@
+
+/* ===== LOCAL_DEV_PANEL_CARD (omniapp.war) ========================================
+   The component panels on the landing page - pages/main/main.app.
+
+   Every component on that page sits in the same wrapper:
+
+       div.col-select.col-xl-N.resp-comp-wrapper        <- Bootstrap width
+         div#div_Int<n>.containerShadow.containerRadius <- the visible panel
+           div.embed-responsive > iframe               <- the component itself
+
+   The panel calls itself `containerRadius` but computes to `border-radius: 0` with a
+   flat 1px #d7d7d7 border, so the search strip and the worklist read as plain boxes
+   sitting under the rounded tiles. This rounds them and swaps the hard border for a
+   soft shadow, matching LOCAL_DEV_TILE_CARD.
+
+   WHY BOTH PANELS, NOT JUST THE SEARCH STRIP
+   The search strip and the worklist are both `col-xl-10`, and nothing in the markup
+   distinguishes them to CSS - the `div_Int<n>` ids are generated from the component
+   configuration, so hardcoding `div_Int3002` would work here and match nothing in
+   another deployment. Styling both is the honest option and keeps the page
+   consistent.
+
+   SCOPED to `.rowwrapper`, so this reaches the landing page's component row only and
+   not the panels in Business Admin or any other view that shares these classes.
+
+   The tiles are excluded: they are col-xl-2/col-xl-3 and already carry their own
+   rule in LOCAL_DEV_TILE_CARD, with a tighter radius and a hover lift they need and
+   these panels do not.
+   ================================================================================= */
+
+.rowwrapper > .col-select.col-xl-10 > div[id^="div_Int"].containerShadow {
+    border: 0 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08),
+                0 4px 12px rgba(16, 24, 40, 0.06) !important;
+}
+
+/* ===== end LOCAL_DEV_PANEL_CARD (omniapp.war) ===================================== */
